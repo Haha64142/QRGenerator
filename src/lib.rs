@@ -1,6 +1,6 @@
 use bitvec::prelude::*;
 
-static GF_ANTILOG: &[u8] = &[
+pub static GF_ANTILOG: &[u8] = &[
     1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 19, 38, 76, 152, 45, 90, 180, 117,
     234, 201, 143, 3, 6, 12, 24, 48, 96, 192, 157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181,
     119, 238, 193, 159, 35, 70, 140, 5, 10, 20, 40, 80, 160, 93, 186, 105, 210, 185, 111, 222, 161,
@@ -28,7 +28,7 @@ static GF_ANTILOG: &[u8] = &[
     11, 22, 44, 88, 176, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142,
 ];
 
-static GF_LOG: &[u8] = &[
+pub static GF_LOG: &[u8] = &[
     0, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75, 4, 100, 224, 14, 52, 141, 239,
     129, 28, 193, 105, 248, 200, 8, 76, 113, 5, 138, 101, 47, 225, 36, 15, 33, 53, 147, 142, 218,
     240, 18, 130, 69, 29, 181, 194, 125, 106, 39, 249, 185, 201, 154, 9, 120, 77, 228, 114, 166, 6,
@@ -58,10 +58,10 @@ pub fn create_ec_codewords(
             continue;
         }
 
-        let lead_exp = GF_LOG[out[i] as usize] as u16;
+        let lead_exp = GF_LOG[out[i] as usize] as usize;
         for j in 0..generator.len() {
             // GF_ANITLOG[gen + GF_LOG[data]] ^ data
-            out[i + j] ^= GF_ANTILOG[(generator[j] as u16 + lead_exp) as usize];
+            out[i + j] ^= GF_ANTILOG[generator[j] as usize + lead_exp];
         }
     }
 
@@ -74,10 +74,10 @@ pub fn create_generator(ec_codewords: usize) -> Result<Vec<u8>, Box<dyn std::err
     for i in 1..ec_codewords {
         for j in (ec_codewords - i)..ec_codewords {
             generator[j] = GF_LOG[(GF_ANTILOG[generator[j + 1] as usize]
-                ^ GF_ANTILOG[((generator[j] as u16 + i as u16) % 255) as usize])
+                ^ GF_ANTILOG[generator[j] as usize + i])
                 as usize];
         }
-        generator[ec_codewords] = ((generator[ec_codewords] as u16 + i as u16) % 255) as u8;
+        generator[ec_codewords] = ((generator[ec_codewords] as usize + i) % 255) as u8;
     }
     Ok(generator)
 }
