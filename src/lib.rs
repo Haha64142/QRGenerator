@@ -44,6 +44,50 @@ pub static GF_LOG: &[u8] = &[
     214, 244, 234, 168, 80, 88, 175,
 ];
 
+// TODO: Update to proper values
+pub static ALIGN_POS: &[&[i32]] = &[&[1, 2], &[1, 2, 3]];
+
+pub fn assemble(codewords: &[u8], version: i32) {}
+
+pub fn is_function(x: i32, y: i32, version: i32) -> Result<bool, Box<dyn std::error::Error>> {
+    let size = 4 * version + 17;
+
+    // Top left finder and format
+    if x <= 8 && y <= 8 {
+        return Ok(true);
+    }
+
+    // Top right finder and format
+    if x >= size - 8 && y <= 8 {
+        return Ok(true);
+    }
+
+    // Bottom left finder and format
+    if x <= 8 && y >= size - 8 {
+        return Ok(true);
+    }
+
+    // Timing strip
+    if x == 6 || y == 6 {
+        return Ok(true);
+    }
+
+    // Left version information area
+    if x <= 6 && y >= size - 11 {
+        return Ok(true);
+    }
+
+    // Right version information area
+    if version >= 7 && x >= size - 11 && y <= 6 {
+        return Ok(true);
+    }
+
+    // TODO: Add alignment comparing code
+    // Alignment patterns
+
+    Ok(false)
+}
+
 pub fn create_ec_codewords(
     data: &[u8],
     generator: &[u8],
